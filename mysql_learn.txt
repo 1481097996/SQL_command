@@ -1,0 +1,37 @@
+#SHOW DATABASES;
+# DQL
+# DML
+# DDL
+# TCL
+Stop: net stop mysql80
+
+Login:  mysql -h localhost -P 3306 -u root -p
+localhost:  mysql -u root -p
+
+
+exit
+
+
+----------------------------------------------------------
+
+show databases;
+use db;
+show tables;
+select database();
+
+desc table; # table structure
+
+select * from table;
+
+
+
+db version
+
+select version();
+mysql --version
+mysql -V
+
+
+annotation # world  or -- world
+
+
