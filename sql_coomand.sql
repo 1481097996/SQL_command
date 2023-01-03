@@ -247,5 +247,232 @@ ELSE  'S'
 END AS res
 FROM employees;
 
+# group by function aggregate function
+# sum avg max min count omit null value
+# can combine with distinct
+# count
+
+
+SELECT SUM(DISTINCT salary),SUM(salary) FROM employees;
+
+SELECT COUNT(*) FROM employees; # total count
+
+SELECT COUNT(1) FROM employees; # total count
+
+
+#======================================================================
+
+# group by
+
+SELECT AVG(salary), `department_id`
+FROM employees
+GROUP BY department_id;
+
+SELECT MAX(salary), job_id
+FROM employees
+GROUP BY job_id
+
+SELECT AVG(salary), department_id
+FROM employees
+WHERE email LIKE '%a%'
+GROUP BY deparmtent_id
+
+
+
+SELECT MAX(salary), manager_id
+FROM employees
+WHERE commission_pct IS NOT NULL
+GROUP BY manager_id
+
+
+# complex
+
+SELECT COUNT(*),department_id
+FROM employees
+GROUP BY department_id
+HAVING COUNT(*)>2; # group by then select
+
+SELECT MIN(salary),manager_id
+FROM employees
+WHERE manager_id > 102
+GROUP BY manager_id
+HAVING MIN(salary) > 5000;
+
+
+SELECT department_id, COUNT(*), AVG(salary)
+FROM employees
+GROUP BY department_id
+ORDER BY AVG(salary)
+
+#++++++++++++++++++++++++++++++++++++++++++++++++
+SELECT * FROM beauty;
+SELECT * FROM boys;
+
+
+
+SELECT NAME, boyName FROM boys,beauty
+WHERE beauty.boyfriend_id  = boys.id;
+
+
+#=====================================================
+
+
+# inner connection
+USE emp;
+SELECT e.last_name, e.job_id, j.job_title
+FROM employees e, jobs j
+WHERE e.job_id = j.job_id;
+
+
+#
+
+SELECT last_name,department_name
+FROM employees e,departments d
+WHERE e.department_id = d.department_id
+AND e.commission_pct IS NOT NULL;
+
+
+
+
+SELECT department_name, city
+FROM departments d, locations l
+WHERE d.location_id = l.location_id
+AND city LIKE '_o%';
+
+
+SELECT COUNT(*), city
+FROM departments d, locations l
+WHERE d.location_id = l.location_id
+GROUP BY city;
+
+
+SELECT department_name, d.manager_id, MIN(salary)
+FROM departments d, employees e
+WHERE d.department_id = e.department_id AND commission_pct IS NOT NULL
+GROUP BY d.department_id;
+
+#自连接
+SELECT e.last_name, e.employee_id, m.employee_id, m.last_name
+FROM employees e, employees m
+WHERE e.manager_id = m.employee_id;
+
+
+
+# sql 99
+/*
+
+	select lists
+	from t1 a [type]
+	join t2 b
+	on conditions
+	where conditions
+	[group by]
+	[having]
+	[order by]
+
+	inner join
+	left outer join/ right
+	full outer join
+	cross join
+*/
+
+# inner join
+#查询员工名 部门名
+SELECT last_name, department_name
+FROM employees e
+INNER JOIN departments d
+ON e.department_id = d.department_id;
+
+SELECT last_name, job_title
+FROM employees e
+INNER JOIN jobs j
+ON e.job_id = j.job_id;
+
+SELECT city, COUNT(*)
+
+
+
+FROM departments d
+INNER JOIN locations l
+ON d.location_id = l.location_id
+GROUP BY city
+HAVING COUNT(*) >1;
+
+
+# outer join
+SELECT * FROM boys;
+
+# don't have boyfriends
+SELECT b.name
+FROM beauty b
+LEFT OUTER JOIN boys bo
+ON b.boyfriend_id = bo.id
+WHERE bo.id IS NULL;
+
+SELECT b.name,bo.*
+FROM beauty b
+LEFT JOIN boys bo
+ON b.boyfriend_id = bo.id
+WHERE b.id >3;
+
+#=====================================
+
+# sub query
+
+
+#查询每个部门的员工个数
+
+SELECT d.*, (SELECT COUNT(*) FROM employees WHERE e.department_id = d.department_id)
+FROM departments d;
+
+FROM employees
+GROUP BY department_id
+
+
+SELECT a1.* ,g.grade_level
+FROM  (
+	SELECT AVG(salary) ag,department_id
+	FROM employees
+	GROUP BY department_id
+
+) a1 
+INNER JOIN
+job_grades g
+ON a1.ag BETWEEN lowest_sal AND highest_sal;
+
+
+# after exists
+SELECT EXISTS(SELECT employee_id FROM employees WHERE salary = 30000) a;
+
+SELECT department_name FROM departments d
+WHERE EXISTS( SELECT * FROM employees e WHERE d.department_id = e.department_id)
+
+
+
+SELECT * FROM employees e , departments d WHERE d.department_id = e.department_id
+
+SELECT * FROM departments
+
+SELECT bo.*,boyfriend_id FROM beauty b, boys bo WHERE bo.id = b.boyfriend_id
+
+
+SELECT last_name, salary
+FROM employees e
+WHERE department_name 
+
+
+SELECT e1.last_name , e1.salary, e1.department_id
+FROM employees e1
+WHERE department_id = (SELECT e.department_id FROM employees e WHERE e.last_name = 'Zlotkey')
+
+
+SELECT employee_id, last_name, salary
+FROM employees
+WHERE salary > (SELECT AVG(salary) FROM employees)
+
+
+SELECT AVG(salary) av, department_id  FROM employees GROUP BY department_id;
+
+
 
 
