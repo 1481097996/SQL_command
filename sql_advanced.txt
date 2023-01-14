@@ -1,0 +1,145 @@
+单值索引
+select * from user where name = '';
+
+create index idx_user_name on user(name);
+
+
+多值索引
+select * from user where name = '' and email ='';
+create index inx_user_nameEmail on user(name,email);
+
+join太多降低查询效率
+
+sql执行顺序
+
+7种join关系
+left join
+inner join A交B
+left join AB共有 + all A
+right join AB共有 + all B
+left join where B.key is null  A独有
+right join where A.key is null B独有
+FUll outer join Ab全连接
+FULL outer join where A.key is null or b.key is null A独有+B独有
+
+
+索引是什么
+index是帮助mysql高效获取数据的数据结构，索引是一种数据结构，提高查找效率 类比于字典 排好序的快速查找数据结构
+影响where orderby 效率
+索引数据结构
+FRM 框架结构 
+类二叉树索引 logn 查找时间
+
+索引优缺点
+排序查找
+
+缺点 索引占用空间 insert update delete更加耗时
+
+索引分类  单值索引 唯一索引 复合索引 基本语法
+
+语法 create[UNIQUE] INDEX indexName on mytable(name);
+ALter mytable ADD [UNIQUE] INDEX[index_name] ON(name);
+Drop INDEX[indexName] ON mytable;
+Show INDEX FROM table_name;
+
+
+mysql 索引结构  BTREE索引 原理
+		   HASH索引
+		   
+
+哪些情况可以建索引
+primary key
+频繁查找
+外键关系
+频繁更新字段 不要建立
+where用不到的字段不创建索引
+单键索引
+order by 排序诉求相同
+查询中统计或分组字段
+
+
+哪些情况不要建立索引
+表记录少
+经常增删改不建
+重复内容多
+
+ 
+mysql query optimizer
+
+mysql 瓶颈: cpu IO 服务器硬件性能瓶颈
+分析报告
+
+*Explain
+分析查询语句并找到性能瓶颈
+
+explain + sql语句
+
+id  | select_type | table | type | possible_keys | key |key_len | ref| rows| extra
+
+
+id
+id相同 从上到下
+id不同时 id大的先执行 子查询
+id相同也有不同  数字大先走 平级顺序执行
+
+select_type
+
+
+
+
+
+
+type
+
+ALL : 检索全表扫描
+const: 通过索引一次就找到了，查找主键索引或者unique where里有单索引查询
+index: 全表扫描 全索引扫描
+range： 范围 索引
+
+
+ref: 非唯一性索引匹配 返回所有行
+eq_ref:  用到索引 只有一条记录与之匹配
+
+
+system：表只有一行记录，等于系统表
+NULL
+
+system > const >eq_ref>ref>range>index>ALL
+达到range ref级别
+
+
+
+possible_keys 可能应用在这张表上的索引
+key 实际使用的索引 如果为null： 索引失效 或 没建索引 若使用了覆盖索引 则该索引仅出现在key列表中 
+覆盖索引：查询的字段 和 建的符合索引的个数和顺序一一一致
+决定是否使用索引
+mysql用的是哪个索引
+
+key: 索引中使用的字节数
+key_len:索引字段最大可能长度 与精确矛盾  
+
+
+ref:显示哪一列被使用了， 有可能是constant
+
+
+rows: 所要读取的行数 越小越好
+
+
+extra:包含不适合其他列显示 但很重要的信息
+
+using filesort: 无法利用索引完成的排序操作 #危险 group by
+using temporary: 产生了内部零时表  然后删除 伤系统性能
+using index: 好事 使用了覆盖索引，避免访问了表的数据行 效率好  #当没有where时，没有索引键的查找动作
+using where: 索引被用于索引键值的查找
+using joinbuffer:
+
+
+
+
+
+
+
+
+
+
+
