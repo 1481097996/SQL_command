@@ -119,6 +119,9 @@ key: 索引中使用的字节数
 key_len:索引字段最大可能长度 与精确矛盾  
 
 
+
+
+
 ref:显示哪一列被使用了， 有可能是constant
 
 
@@ -131,7 +134,83 @@ using filesort: 无法利用索引完成的排序操作 #危险 group by
 using temporary: 产生了内部零时表  然后删除 伤系统性能
 using index: 好事 使用了覆盖索引，避免访问了表的数据行 效率好  #当没有where时，没有索引键的查找动作
 using where: 索引被用于索引键值的查找
-using joinbuffer:
+using joinbuffer: 使用了连接缓存
+impossible where:  where false 不能获取元组
+select tables optimized away
+distinct: 第一个就收工
+
+
+
+索引分析
+
+
+
+
+
+
+
+Explain select id,author_id from article where category_id=1 and comments>1 order by views desc limit 1;
++----+-------------+---------+------+---------------+------+---------+------+------+-----------------------------+
+| id | select_type | table   | type | possible_keys | key  | key_len | ref  | rows | Extra                       |
++----+-------------+---------+------+---------------+------+---------+------+------+-----------------------------+
+|  1 | SIMPLE      | article | ALL  | NULL          | NULL | NULL    | NULL |    3 | Using where; Using filesort |
++----+-------------+---------+------+---------------+------+---------+------+------+-----------------------------+
+
+file sort, all
+
+
+#开始优化
+create index idx_article_ccv on article(category_id,comments,views);
+
+
+
+mysql> Explain select id,author_id from article where category_id=1 and comments>1 order by views desc limit 1;
++----+-------------+---------+-------+-----------------+-----------------+---------+------+------+-----------------------------+
+| id | select_type | table   | type  | possible_keys   | key             | key_len | ref  | rows | Extra                       |
++----+-------------+---------+-------+-----------------+-----------------+---------+------+------+-----------------------------+
+|  1 | SIMPLE      | article | range | idx_article_ccv | idx_article_ccv | 8       | NULL |    1 | Using where; Using filesort |
++----+-------------+---------+-------+-----------------+-----------------+---------+------+------+-----------------------------+
+1 row in set (0.00 sec)
+
+mysql> Explain select id,author_id from article where category_id=1 and comments=1 order by views desc limit 1;
++----+-------------+---------+------+-----------------+-----------------+---------+-------------+------+-------------+
+| id | select_type | table   | type | possible_keys   | key             | key_len | ref         | rows | Extra       |
++----+-------------+---------+------+-----------------+-----------------+---------+-------------+------+-------------+
+|  1 | SIMPLE      | article | ref  | idx_article_ccv | idx_article_ccv | 8       | const,const |    1 | Using where |
++----+-------------+---------+------+-----------------+-----------------+---------+-------------+------+-------------+
+
+
+drop index idx_article_ccv ON article;
+
+
+
+create index idx_article_cv on article(category_id,views);
+
+
+
+left join + 右索引 
+right join + 左索引
+小表驱动大表
+buffer大
+
+
+
+避免索引失效
+全值匹配我最爱
+最佳左前缀原则 ：带头大哥不能死 
+复合索引为阶梯 中间消失上不去
+不在索引列上做任何操作
+存储引擎不能使用范围之后的列 name = , age> age之后不能用
+尽量使用覆盖索引 减少select *
+在使用不等于的时候无法使用索引会导致全表扫描  ！=  <>
+is null, is not null 无法使用索引 impossible where 避免空值 default value
+like以避免通配符开通('%abc...')mysql索引失效会变成全表扫描  =>   like('abc%')  type:range
+如何解决索引失效问题：覆盖索引 
+字符串不加单引号会使索引失效
+or会使索引失效
+
+
+
 
 
 
