@@ -385,8 +385,7 @@ begin;
 select * from table where a = 8 for update; 手工锁一行
 do changing# lock the row, other sessions can't update this row
 commit
-
-
+INnodb_row_lock_waits:当前正在等待锁定的数量
 
 
 
