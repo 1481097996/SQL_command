@@ -211,10 +211,180 @@ or会使索引失效
 
 
 
+组合索引 顺序重要
+单值选频率高的
 
 
 
+分析
 
+产看慢sql情况
+开启慢查询日志，抓取慢查询，捕获
+explain 慢查询分析
+show profile执行细节 生命周期
+sql数据库服务器参数调优
+
+
+小表驱动大表
+
+
+当A表<B表时，in
+
+反之 exits
+select * from A exits (select 1 from B where B.id =A.id)
+
+
+order by 尽量使用index方式排序
+order by 使用索引最左前列 ;使用where子句与order by子句条件列组合满足索引最左前列
+
+双路排序
+单路排序  sort buffer size/ max_lenth_for sort_data
+ 
+
+文件排序  扫描索引排序
+排序与查询使用相同的索引
+
+
+慢查询日志分析
+#long_query_time超过 加入日志
+需要手动开启 并影响部分性能
+Show variables like '%slow_query_log%';
+set global slow_query_log = 1; #针对本次数据库生效
+如果想要永久生效：进入配置文件配置
+
+
+show variables like '%long_query_time%';
+set global long_query_time =3;
+
+show global status like '%Slow_queries%';
+
+
+mysqldumpslow --help
+
+
+函数 存储过程
+函数有返回值
+存储过程 没有返回值
+
+
+
+create table dept(
+id int unsigned primary key auto_increment,
+deptno mediumint unsigned not null default 0,
+dname varchar(20) not null default "",
+loc varchar(13) not null default ""
+)engine=innodb default charset=GBK;
+
+CREATE TABLE emp(
+id int unsigned primary key auto_increment,
+empno mediumint unsigned not null default 0,
+ename varchar(20) not null default "",
+job varchar(9) not null default "",
+mgr mediumint unsigned not null default 0,
+hiredate date not null,
+sal decimal(7,2) not null,
+comm decimal(7,2) not null,
+deptno mediumint unsigned not null default 0
+)ENGINE=INNODB DEFAULT CHARSET=GBK;
+
+
+
+insert 100w data
+
+show varibales like 'log_bin_trust_function_creators';
+set global log_bin_trust_function_creators=1;
+
+随机产生字符串
+随机产生部门编号
+
+
+delimiter $$
+create function ran_string(n int) returns varchar(255)
+begin
+declare chars_str varchar(100) default 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+declare return_str varchar(255) default '';
+declare i int default 0;
+while i < n do
+set return_str = concat(return_str,substring(chars_str,floor(1+rand()*52),1));
+set i=i+1;
+end while;
+return return_str;
+end $$
+
+
+Show profiles;
+sql调优
+show variables like 'profiling'
+set profiling = on;
+show profile cpu,block io for query id;
+
+#严重问题
+converting heap to myisam
+creating tmp table
+copying to tmp table on disk
+locked
+
+
+MYsql锁机制
+锁分类 读锁 写锁
+表锁 行锁 页锁
+show open tables;
+lock table mylock read, book write;
+unlock tables;
+
+
+表锁
+read lock  共享锁  不能写入 都自己 不能改自己 不能读别其他表  其他人可以查 修改时被阻塞 可以查看其他未加锁的表
+
+write lock 
+lock table mylock write;
+自己可以读锁住的表
+自己可以写锁住的表
+自己不可以读其他的表
+其他人可以读其他未锁的表
+其他人读锁住的表会阻塞
+
+MYISAM 会自动给所有表上读锁，在增删查改时会自动上写锁
+读锁会阻塞写，但不阻塞读。写锁阻塞读写
+
+
+show status like 'table%';
+
+table_locks_waited : 高->锁竞争
+table_locks_immediate
+
+myisam不适合做写为主表的引擎 偏读
+
+
+行锁分析: 偏向于innoDB存储，冲突低，并发高
+行级锁
+
+事务 transaction ACID
+atomicity, consistent,isolation,durable
+
+更新丢失 
+脏读 读到uncommit数据 
+不可重读 A读到了事务B已经提交的修改数据
+幻读 事务A读到了事务B提交的新增数据
+
+脏读是事务B修改了数据
+幻读是事务B里面增加了数据
+
+
+
+事务隔离级别 四种
+read uncommitted; read committed; repeatable read; serializable
+初始是 repeatable read 事务级别 无脏读 不可重读 会有幻读
+
+#注意不要行锁变表锁
+
+行锁 Innodb
+set autocommit =0;
+
+begin;
+select * from table where a = 8 for update; 手工锁一行
+do changing# lock the row, other sessions can't update this row
+commit
 
 
 
